@@ -1,0 +1,12 @@
+
+exportPattern("^[^\\.]")
+import(keras)
+importFrom("tm", "removeWords")
+importFrom("text2vec", "itoken", "word_tokenizer", "create_vocabulary", "prune_vocabulary")
+importFrom("tokenizers", "tokenize_ngrams")
+importFrom("textstem", "lemmatize_strings")
+importFrom("data.table", "data.table")
+importFrom("stopwords", "stopwords")
+importFrom("purrr", "map", "map_chr", "pluck", "imap_dfr", "%||%")
+importFrom("stats", "embed", "na.omit", "p.adjust", "predict")
+importFrom("DiagrammeR", "grViz")

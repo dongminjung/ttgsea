@@ -1,0 +1,223 @@
+---
+title: "Tokenizing Text of Gene Set Enrichment Analysis"
+author: "Dongmin Jung"
+date: September 30, 2020
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    fig_width: 5
+    fig_height: 4
+vignette: >
+  %\VignetteIndexEntry{survtype}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+
+
+
+
+
+<br><br>
+
+# Introduction
+
+Functional enrichment analysis methods such as gene set enrichment analysis (GSEA) have been widely used for analyzing gene expression data. GSEA is a powerful method to infer results of gene expression data at a level of gene sets by calculating enrichment scores for predefined sets of genes. GSEA depends on the availability and accuracy of gene sets. There are overlaps between terms of gene sets or categories because multiple terms may exist for a single biological process, and it can thus lead to redundancy within enriched terms. In other words, the sets of related terms are overlapping. Using deep learning, this pakage is aimed to predict enrichment scores for unique tokens or words from text in names of gene sets to resolve this overlapping set issue. Furthermore, we can coin a new term by combining tokens and find its enrichment score by predicting such a combined tokens.
+
+Text can be seen as sequential data, either as a sequence of characters or as a sequence of words. Recurrent Neural Network (RNN) operating on sequential data is a type of the neural network. RNN has been applied to a variety of tasks including natural language processing such as machine translation. However, RNN suffers from the problem of long-term dependencies which means that RNN struggles to remember information for long periods of time. An Long Short-Term Memory (LSTM) network is a special kind of RNN that is designed to solve the long-term dependency problem. The bidirectional LSTM network consists of two distinct LSTM networks, termed the forward LSTM and the backward LSTM, which process the sequences in opposite directions. Gated Recurrent Unit (GRU) is a simplified version of LSTM with less number of parameters, and thus, the total number of parameters can be greatly reduced for a large neural network. LSTM and GRU are known to be successful remedies to the long-term dependency problem. The above models take terms of gene sets as input and enrichment scores as output to predict enrichment scores of new terms.
+
+
+
+
+
+
+
+
+<br><br>
+
+# Example
+
+## Terms of gene sets
+
+
+Consider a simple example. Once GSEA is performed, the result calculated from GSEA is fed into the algorithm to train the deep learning models.
+
+```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
+library(ttgsea)
+library(fgsea)
+data(examplePathways)
+data(exampleRanks)
+names(examplePathways) <- gsub("_", " ", substr(names(examplePathways), 9, 1000))
+set.seed(1)
+fgseaRes <- fgseaSimple(examplePathways, exampleRanks, nperm = 10000)
+data.table::data.table(fgseaRes[order(fgseaRes$NES, decreasing = TRUE),])
+```
+
+
+<br>
+
+
+Since deep learning architectures are incapable of processing characters or words in their raw form, the text needs to be converted to numbers as inputs. Word embeddings are the texts converted into numbers. For tokenization, unigram and bigram sequences are used as default. An integer is assigned to each token, and then each term is converted to a sequence of integers. The sequences that are longer than the given maximum length are truncated, whereas shorter sequences are padded with zeros. Keras is a higher-level library built on top of TensorFlow. It is available in R through the keras package. The input to the Keras embedding are integers. These integers are of the tokens. This representation is passed to the embedding layer. The embedding layer acts as the first hidden layer of the neural network.
+
+```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
+# model parameters
+num_tokens <- 1000
+length_seq <- 30
+batch_size <- 32
+embedding_dims <- 50
+num_units <- 32
+epochs <- 20
+
+# algorithm
+ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
+                       model = bi_lstm(num_tokens, embedding_dims,
+                                       length_seq, num_units),
+                       num_tokens = num_tokens,
+                       length_seq = length_seq,
+                       epochs = epochs,
+                       batch_size = batch_size,
+                       callbacks = keras::callback_early_stopping(
+                          monitor = "loss",
+                          patience = 10,
+                          restore_best_weights = TRUE))
+
+# prediction for every token
+ttgseaRes$token_pred
+ttgseaRes$token_gsea[["TGF beta"]][,1:5]
+```
+
+
+<br>
+
+
+Deep learning models predict only enrichment scores. The p-values of the scores are not provided by the model. So, the Monte Carlo p-value method is used within the algorithm. Computing the p-value for a statistical test can be easily accomplished via Monte Carlo. The ordinary Monte Carlo is a simulation technique for approximating the expectation of a function for a general random variable, when the exact expectation cannot be found analytically. The Monte Carlo p-value method simply simulates a lot of datasets under the null, computes a statistic for each generated dataset, and then computes the percentile rank of observed value among these sets of simulated values. The number of tokens used for each simulation is the same to the length of the sequence of the corresponding term. If a new text does not have any tokens, its p-value is not available.
+
+```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
+# prediction with MC p-value
+set.seed(1)
+new_text <- c("Cell Cycle DNA Replication",
+              "Cell Cycle",
+              "DNA Replication",
+              "Cycle Cell",
+              "Replication DNA",
+              "TGF-beta receptor")
+predict_model(ttgseaRes, new_text)
+predict_model(ttgseaRes, "data science")
+```
+
+
+<br>
+
+
+You are allowed to create a visualization of your model architecture.
+
+```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
+summary(ttgseaRes$model)
+plot_model(ttgseaRes$model)
+```
+
+
+
+
+
+
+<br>
+
+## Leading edge genes
+
+Take another exmaple. A set of names of ranked genes can be seen as sequential data. In the result of GSEA, names of leading edge genes for each gene set are given. The leading edge subset contains genes which contribute most to the enrichment score. Thus the scores of one or more genes of the leading edge subset can be predicted.
+
+```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
+# model parameters
+num_tokens <- 1000
+length_seq <- 30
+batch_size <- 32
+embedding_dims <- 50
+num_units <- 32
+epochs <- 10
+
+# leading edge
+LE <- unlist(lapply(fgseaRes$leadingEdge, function(x) gsub(",", "", toString(x))))
+fgseaRes <- cbind(fgseaRes, LE)
+
+# algorithm
+ttgseaRes <- fit_model(fgseaRes, "LE", "NES",
+                       model = bi_lstm(num_tokens, embedding_dims,
+                                       length_seq, num_units),
+                       num_tokens = num_tokens,
+                       length_seq = length_seq,
+                       epochs = epochs,
+                       batch_size = batch_size,
+                       verbose = 0,
+                       callbacks = callback_early_stopping(
+                          monitor = "loss",
+                          patience = 5,
+                          restore_best_weights = TRUE))
+
+# prediction for every token
+ttgseaRes$token_pred
+
+# prediction with MC p-value
+set.seed(1)
+new_text <- c("107995 56150", "16952")
+predict_model(ttgseaRes, new_text)
+```
+
+
+
+
+
+
+
+
+<br><br>
+
+# Session information
+
+```{r, eval=TRUE}
+sessionInfo()
+```
+
+
+
+
+
+
+
+
+<br><br>
+
+# References
+
+Alterovitz, G., & Ramoni, M. (Eds.). (2011). Knowledge-Based Bioinformatics: from Analysis to Interpretation. John Wiley & Sons.
+
+
+Consoli, S., Recupero, D. R., & Petkovic, M. (2019). Data Science for Healthcare: Methodologies and Applications. Springer.
+
+
+DasGupta, A. (2011). Probability for Statistics and Machine Learning: Fundamentals and Advanced Topics. Springer.
+
+
+Ghatak, A. (2019). Deep Learning with R. Springer.
+
+
+Hassanien, A. E., & Elhoseny, M. (2019). Cybersecurity and Secure Information Systems: Challenges and Solutions and Smart Environments. Springer.
+
+
+Leong, H. S., & Kipling, D. (2009). Text-based over-representation analysis of microarray gene lists with annotation bias. Nucleic acids research, 37(11), e79.
+
+
+Micheas, A. C. (2018). Theory of Stochastic Objects: Probability, Stochastic Processes and Inference. CRC Press.
+
+
+Shaalan, K., Hassanien, A. E., & Tolba, F. (Eds.). (2017). Intelligent Natural Language Processing: Trends and Applications (Vol. 740). Springer.
+
+
+<br>
+
+
