@@ -18,13 +18,13 @@ Maintainer: Dongmin Jung <dmdmjung@gmail.com>
 
 Depends: keras
 
-Imports: tm, text2vec, tokenizers, textstem, data.table, purrr, DiagrammeR
+Imports: tm, text2vec, tokenizers, textstem, stopwords, data.table, purrr, DiagrammeR, stats
 
 Suggests: fgsea, knitr
 
 License: Artistic-2.0
 
-biocViews: Software, MachineLearning
+biocViews: Software, GeneExpression, GeneSetEnrichment
 
 NeedsCompilation: no
 
