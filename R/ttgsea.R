@@ -1,5 +1,4 @@
-text_token <- function(text, ngram_min = 1, ngram_max = 1, num_tokens)
-{
+text_token <- function(text, ngram_min = 1, ngram_max = 1, num_tokens) {
     text <- tm::removeWords(text, stopwords::stopwords("en"))
     text <- textstem::lemmatize_strings(text)
     it <- text2vec::itoken(text, preprocess_function = identity,
@@ -19,8 +18,7 @@ text_token <- function(text, ngram_min = 1, ngram_max = 1, num_tokens)
 
 
 
-token_vector <- function(text, token, length_seq)
-{
+token_vector <- function(text, token, length_seq) {
     text <- tm::removeWords(text, stopwords::stopwords("en"))
     text <- textstem::lemmatize_strings(text)
     text_ngrams <- tokenizers::tokenize_ngrams(text, n = token$ngram_max,
@@ -34,8 +32,7 @@ token_vector <- function(text, token, length_seq)
 
 
 
-metric_pearson_correlation <- function(y_true, y_pred)
-{
+metric_pearson_correlation <- function(y_true, y_pred) {
     y_true_dev <- y_true - keras::k_mean(y_true)
     y_pred_dev <- y_pred - keras::k_mean(y_pred)
     r_num <- keras::k_sum(y_true_dev * y_pred_dev)
@@ -47,8 +44,7 @@ metric_pearson_correlation <- function(y_true, y_pred)
 
 
 
-bi_lstm <- function(num_tokens, embedding_dims, length_seq, num_units)
-{
+bi_lstm <- function(num_tokens, embedding_dims, length_seq, num_units) {
     model <- keras::keras_model_sequential() %>% 
       keras::layer_embedding(input_dim = num_tokens,
                              output_dim = embedding_dims,
@@ -58,14 +54,14 @@ bi_lstm <- function(num_tokens, embedding_dims, length_seq, num_units)
       keras::layer_dense(1)
     model %>%
       keras::compile(loss = "mean_squared_error", optimizer = "adam",
-                     metrics = metric_pearson_correlation)
+                     metrics = custom_metric("pearson_correlation",
+                                             metric_pearson_correlation))
 }
 
 
 
 
-bi_gru <- function(num_tokens, embedding_dims, length_seq, num_units)
-{
+bi_gru <- function(num_tokens, embedding_dims, length_seq, num_units) {
     model <- keras::keras_model_sequential() %>%
       keras::layer_embedding(input_dim = num_tokens,
                              output_dim = embedding_dims,
@@ -75,16 +71,15 @@ bi_gru <- function(num_tokens, embedding_dims, length_seq, num_units)
       keras::layer_dense(1)
     model %>%
       keras::compile(loss = "mean_squared_error", optimizer = "adam",
-                     metrics = metric_pearson_correlation)
+                     metrics = custom_metric("pearson_correlation",
+                                             metric_pearson_correlation))
 }
 
 
 
 
-sampling_generator <- function(X_data, Y_data, batch_size)
-{
-    function()
-    {
+sampling_generator <- function(X_data, Y_data, batch_size) {
+    function() {
         rows <- sample(seq_len(nrow(X_data)), batch_size, replace = TRUE)
         list(X_data[rows,], Y_data[rows,])
     }
@@ -94,17 +89,16 @@ sampling_generator <- function(X_data, Y_data, batch_size)
 
 
 fit_model <- function(gseaRes, text, score, model, ngram_min = 1, ngram_max = 2,
-                      num_tokens, length_seq, epochs, batch_size, ...)
-{
+                      num_tokens, length_seq, epochs, batch_size, ...) {
     gseaRes <- data.frame(gseaRes)
     
-    cat("pre-processing...\n")
+    message("pre-processing...")
     # text tokenization
     tokens <- text_token(gseaRes[,text], ngram_min, ngram_max, num_tokens)
     x_train <- token_vector(gseaRes[,text], tokens, length_seq)
     y_train <- gseaRes[,score]
     
-    cat("model fitting...\n")
+    message("model fitting...")
     model %>%
       keras::fit_generator(sampling_generator(as.matrix(x_train),
                                               as.matrix(y_train),
@@ -118,14 +112,14 @@ fit_model <- function(gseaRes, text, score, model, ngram_min = 1, ngram_max = 2,
     token_pred <- data.frame(token_term, pred)
     token_pred <- token_pred[order(token_pred$pred, decreasing = TRUE),]
     
-    cat("post-processing...\n")
+    message("post-processing...")
     # text for each token
     gsea_text <- gsub("[[:punct:]]", " ",
                       tm::removeWords(gseaRes[,text],
                                       stopwords::stopwords("en")))
     gsea_text <- textstem::lemmatize_strings(gsea_text)
-    token_gsea <- sapply(token_term,
-                         function(x) list(gseaRes[which(grepl(x,gsea_text)),]))
+    token_gsea <- lapply(token_term,
+                         function(x) gseaRes[which(grepl(x, gsea_text)),])
     names(token_gsea) <- token_term
     
     result <- list()
@@ -142,8 +136,7 @@ fit_model <- function(gseaRes, text, score, model, ngram_min = 1, ngram_max = 2,
 
 
 predict_model <- function(object, new_text, num_simulations = 1000,
-                          adj_p_method = "fdr")
-{
+                          adj_p_method = "fdr") {
     model <- object$model
     num_tokens <- object$num_tokens
     length_seq <- object$length_seq
@@ -153,18 +146,16 @@ predict_model <- function(object, new_text, num_simulations = 1000,
     test_value <- as.vector(predict(model, x_test))
     
     m <- num_simulations
-    n <- apply(x_test, 1, function(x) length(x[x != 0]))
-    MC_p_value <- ifelse(n, mapply(function(x, y)
-    {
+    n <- rowSums(x_test != 0)
+    MC_p_value <- ifelse(n, mapply(function(x, y) {
       simulation_matrix <- matrix(sample(0:(num_tokens-1),
                                          m*x, replace = TRUE), m, x)
-      temp <- lapply(apply(simulation_matrix, 1, list),
-                     function(z) z[[1]][seq_len(x)])
+      temp <- lapply(seq_len(nrow(simulation_matrix)),
+                     function(z) simulation_matrix[z,])
       x_test_temp <- temp %>% keras::pad_sequences(maxlen = length_seq)
       2*min(mean(as.vector(predict(model, x_test_temp)) > abs(y)),
             mean(as.vector(predict(model, x_test_temp)) < -abs(y)))
-    },
-    n, test_value), NA)
+    }, n, test_value), NA)
     
     adj_p_value <- p.adjust(MC_p_value, adj_p_method, length(MC_p_value))
     
@@ -174,8 +165,7 @@ predict_model <- function(object, new_text, num_simulations = 1000,
 
 
 
-plot_model <- function(x)
-{
+plot_model <- function(x) {
     # layer information
     model_layers <- x$get_config()$layers
     
@@ -188,27 +178,21 @@ plot_model <- function(x)
       purrr::map_chr("class_name")
     layer_type_sub <- model_layers %>% 
       purrr::map_chr(~(purrr::`%||%`(purrr::pluck(., "config", "layer", "class_name"), "")))
-    layer_input_shape <- unlist(lapply(x$layers,
-                                      function(x)
-                                      {
-                                         ifelse(length(purrr::pluck(x$input_shape, 1)) > 0,
-                                                paste("[", paste(
-                                                  unlist(lapply(x$input_shape,
-                                                                function(x) paste("(", toString(paste(x)), ")", sep = ""))),
-                                                  collapse = ", "), "]", sep = ""),
-                                                paste("(", toString(paste(x$input_shape)), ")", sep = ""))
-                                      }))
+    layer_input_shape <- unlist(lapply(x$layers, function(x) {
+        ifelse(length(purrr::pluck(x$input_shape, 1)) > 0,
+               paste("[", paste(unlist(lapply(x$input_shape,
+                   function(x) paste("(", toString(paste(x)), ")", sep = ""))),
+                   collapse = ", "), "]", sep = ""),
+               paste("(", toString(paste(x$input_shape)), ")", sep = ""))
+        }))
     layer_input_shape <- gsub("NULL", "None", layer_input_shape)
-    layer_output_shape <- unlist(lapply(x$layers,
-                                        function(x)
-                                        {
-                                            ifelse(length(purrr::pluck(x$output_shape, 1)) > 0,
-                                                   paste("[", paste(
-                                                     unlist(lapply(x$output_shape,
-                                                                   function(x) paste("(", toString(paste(x)), ")", sep = ""))),
-                                                     collapse = ", "), "]", sep = ""),
-                                                   paste("(", toString(paste(x$output_shape)), ")", sep = ""))
-                                         }))
+    layer_output_shape <- unlist(lapply(x$layers, function(x) {
+        ifelse(length(purrr::pluck(x$output_shape, 1)) > 0,
+               paste("[", paste(unlist(lapply(x$output_shape,
+                   function(x) paste("(", toString(paste(x)), ")", sep = ""))),
+                   collapse = ", "), "]", sep = ""),
+               paste("(", toString(paste(x$output_shape)), ")", sep = ""))
+        }))
     layer_output_shape <- gsub("NULL", "None", layer_output_shape)
     node_info <- data.frame(layer_name, layer_name_sub, layer_type,
                             layer_type_sub, layer_input_shape, layer_output_shape)
@@ -219,43 +203,35 @@ plot_model <- function(x)
                                          x$inbound_nodes[[1]] %>% 
                                            purrr::map_chr(c(1, 1))))
     
-    if (all(is.null(unlist(inbound))))
-    {
+    if (length(Filter(Negate(is.null), inbound)) == 0) {
       edge_info <- embed(rownames(node_info), dimension = 2)
       from <- edge_info[, 2]
       to <- edge_info[, 1]
       edge_info <- data.frame(from, to, stringsAsFactors = FALSE)
-    }
-    else
-    {
+    } else {
       names(inbound) <- purrr::map(model_layers, "name")
-      inbound <- inbound[!sapply(inbound, is.null)]
+      inbound <- Filter(Negate(is.null), inbound)
       edge_info <- purrr::imap_dfr(inbound, ~ data.frame(from = .x, to = .y, stringsAsFactors = FALSE))
       edge_info$from <- rownames(node_info)[match(edge_info$from, node_info$layer_name)]
       edge_info$to <- rownames(node_info)[match(edge_info$to, node_info$layer_name)]
     }
   
     # plot
-    nodes <- paste(sapply(seq_len(nrow(node_info)),
-                          function(x) paste(toString(x), " [label = '@@", toString(x), "']",
-                                            sep = "")), collapse = "")
-    names <- paste(sapply(seq_len(nrow(node_info)),
-                          function(x)
-                          {
-                              paste(" [", toString(x), "]: ", "'",
-                                    node_info$layer_name[x], " ",
-                                    ifelse(node_info$layer_name_sub[x] != "",
-                                           paste("(", node_info$layer_name_sub[x], ")", sep = ""), ""),
-                                    " : ",
-                                    node_info$layer_type[x], " ",
-                                    ifelse(node_info$layer_type_sub[x] != "",
-                                           paste("(", node_info$layer_type_sub[x], ")", sep = ""), ""),
-                                    "|{input: | output:}", "|{",
-                                    node_info$layer_input_shape[x], "|",
-                                    node_info$layer_output_shape[x], "}",
-                                    "'", sep = "")
-                          }), collapse = "\n")
-    edges <- gsub( ",", "->", paste(apply(edge_info, 1, toString), collapse = " "))
+    nodes <- paste(unlist(lapply(seq_len(nrow(node_info)),
+                          function(x) paste(toString(x), " [label = '@@", toString(x), "']", sep = ""))),
+                   collapse = "")
+    names <- paste(unlist(lapply(seq_len(nrow(node_info)), function(x) {
+        paste(" [", toString(x), "]: ", "'", node_info$layer_name[x], " ",
+              ifelse(node_info$layer_name_sub[x] != "",
+                     paste("(", node_info$layer_name_sub[x], ")", sep = ""), ""),
+              " : ",
+              node_info$layer_type[x], " ",
+              ifelse(node_info$layer_type_sub[x] != "",
+                     paste("(", node_info$layer_type_sub[x], ")", sep = ""), ""),
+              "|{input: | output:}", "|{",
+              node_info$layer_input_shape[x], "|", node_info$layer_output_shape[x], "}", "'", sep = "")
+        })), collapse = "\n")
+    edges <- gsub(",", "->", paste(apply(edge_info, 1, toString), collapse = " "))
     
     DiagrammeR::grViz(paste("digraph{
                              graph [layout = dot]
