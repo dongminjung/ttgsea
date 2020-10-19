@@ -56,20 +56,26 @@ data(examplePathways)
 data(exampleRanks)
 names(examplePathways) <- gsub("_", " ", substr(names(examplePathways), 9, 1000))
 
-library(BiocSet)
-library(GSEABase)
-genesets <- BiocSet(examplePathways)
-# convert the set to list (from BiocSet::BiocSet to list or from GSEABase::GeneSetCollection to list)
-# gsc_list <- as(genesets, "list")
-gsc <- as(genesets, "GeneSetCollection")
-gsc_list <- list()
-for (i in 1:length(gsc)) {
-  gsc_list[[setName(gsc[[i]])]] <- geneIds(gsc[[i]])
-}
-
 set.seed(1)
-fgseaRes <- fgseaSimple(gsc_list, exampleRanks, nperm = 10000)
+fgseaRes <- fgseaSimple(examplePathways, exampleRanks, nperm = 10000)
 data.table::data.table(fgseaRes[order(fgseaRes$NES, decreasing = TRUE),])
+
+### convert from gene set defined by BiocSet::BiocSet to list
+#library(BiocSet)
+#genesets <- BiocSet(examplePathways)
+#gsc_list <- as(genesets, "list")
+
+# convert from gene set defined by GSEABase::GeneSetCollection to list
+#library(GSEABase)
+#genesets <- BiocSet(examplePathways)
+#gsc <- as(genesets, "GeneSetCollection")
+#gsc_list <- list()
+#for (i in 1:length(gsc)) {
+#  gsc_list[[setName(gsc[[i]])]] <- geneIds(gsc[[i]])
+#}
+
+#set.seed(1)
+#fgseaRes <- fgseaSimple(gsc_list, exampleRanks, nperm = 10000)
 ```
 
 
