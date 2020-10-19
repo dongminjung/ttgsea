@@ -42,11 +42,10 @@ names(statistic) <- rownames(res)
 statistic <- na.omit(statistic)
 head(statistic)
 ```
-
+```
 ENSG00000000003 ENSG00000000419 ENSG00000000457 ENSG00000000460 ENSG00000000938 ENSG00000000971 
-     0.38125398     -0.20681260     -0.03792043      0.08816818      1.37822703 
-    -0.42640213
-
+     0.38125398     -0.20681260     -0.03792043      0.08816818      1.37822703     -0.42640213
+```
 ```
 ## gene set
 library(org.Hs.eg.db)
@@ -63,7 +62,7 @@ set.seed(1)
 fgseaRes <- fgsea(go, statistic)
 head(fgseaRes[,-"leadingEdge"])
 ```
-
+```
                                               pathway       pval      padj    log2err
 1:                 'de novo' AMP biosynthetic process 0.59126984 1.0000000 0.07011322
 2:                 'de novo' CTP biosynthetic process 0.02202493 0.7889598 0.35248786
@@ -78,7 +77,7 @@ head(fgseaRes[,-"leadingEdge"])
 4:  0.4031617  0.8156349    6
 5:  0.4328288  0.8303816    5
 6: -0.4293014 -0.7200576    3
-
+```
 ```
 ## tokenizing text of GSEA
 # model parameters
@@ -101,7 +100,7 @@ ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
                          patience = 5,
                          restore_best_weights = TRUE))
 ```
-
+```
 Epoch 1/20
 183/183 [==============================] - 58s 315ms/step - loss: 0.9679 - pearson_correlation: 0.2008
 Epoch 2/20
@@ -142,6 +141,7 @@ Epoch 19/20
 183/183 [==============================] - 59s 323ms/step - loss: 0.2990 - pearson_correlation: 0.8405
 Epoch 20/20
 183/183 [==============================] - 60s 327ms/step - loss: 0.2720 - pearson_correlation: 0.8548
+```
 
 ![history plot](docs/history_plot.png)
 
@@ -150,6 +150,7 @@ Epoch 20/20
 ttgseaRes$token_pred
 ```
 
+```
              token_term      pred
    1:           SA node  2.914987
    2: dicarboxylic acid  2.786132
@@ -162,6 +163,7 @@ ttgseaRes$token_pred
 4998:              edit -2.135143
 4999:          helper T -2.139603
 5000:       helper cell -2.143030
+```
 
 ```
 set.seed(1)
@@ -174,6 +176,7 @@ predict_model(ttgseaRes, c("translation response",
                            "Wnt"))
 ```
 
+```
                new_text test_value MC_p_value adj_p_value
 1  translation response  1.5176259      0.026  0.06066667
 2     cytokine activity  2.1312644      0.000  0.00000000
@@ -182,6 +185,7 @@ predict_model(ttgseaRes, c("translation response",
 5 histone deacetylation -0.7845942      0.298  0.29800000
 6         helper T cell -1.2319267      0.050  0.08750000
 7                   Wnt -1.0362499      0.090  0.10500000
+```
 
 ```
 plot_model(ttgseaRes$model)
