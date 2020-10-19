@@ -1,7 +1,7 @@
 ---
 title: "Tokenizing Text of Gene Set Enrichment Analysis"
 author: "Dongmin Jung"
-date: September 30, 2020
+date: October 20, 2020
 output:
   rmarkdown::html_document:
     highlight: pygments
@@ -11,7 +11,7 @@ output:
     fig_width: 5
     fig_height: 4
 vignette: >
-  %\VignetteIndexEntry{survtype}
+  %\VignetteIndexEntry{ttgsea}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -40,10 +40,12 @@ Text can be seen as sequential data, either as a sequence of characters or as a 
 
 <br><br>
 
+
 # Example
 
 ## Terms of gene sets
 
+### GSEA
 
 Consider a simple example. Once GSEA is performed, the result calculated from GSEA is fed into the algorithm to train the deep learning models.
 
@@ -53,14 +55,28 @@ library(fgsea)
 data(examplePathways)
 data(exampleRanks)
 names(examplePathways) <- gsub("_", " ", substr(names(examplePathways), 9, 1000))
+
+library(BiocSet)
+library(GSEABase)
+genesets <- BiocSet(examplePathways)
+# convert the set to list (from BiocSet::BiocSet to list or from GSEABase::GeneSetCollection to list)
+# gsc_list <- as(genesets, "list")
+gsc <- as(genesets, "GeneSetCollection")
+gsc_list <- list()
+for (i in 1:length(gsc)) {
+  gsc_list[[setName(gsc[[i]])]] <- geneIds(gsc[[i]])
+}
+
 set.seed(1)
-fgseaRes <- fgseaSimple(examplePathways, exampleRanks, nperm = 10000)
+fgseaRes <- fgseaSimple(gsc_list, exampleRanks, nperm = 10000)
 data.table::data.table(fgseaRes[order(fgseaRes$NES, decreasing = TRUE),])
 ```
 
 
 <br>
 
+
+### deep learning and embedding
 
 Since deep learning architectures are incapable of processing characters or words in their raw form, the text needs to be converted to numbers as inputs. Word embeddings are the texts converted into numbers. For tokenization, unigram and bigram sequences are used as default. An integer is assigned to each token, and then each term is converted to a sequence of integers. The sequences that are longer than the given maximum length are truncated, whereas shorter sequences are padded with zeros. Keras is a higher-level library built on top of TensorFlow. It is available in R through the keras package. The input to the Keras embedding are integers. These integers are of the tokens. This representation is passed to the embedding layer. The embedding layer acts as the first hidden layer of the neural network.
 
@@ -71,7 +87,7 @@ length_seq <- 30
 batch_size <- 32
 embedding_dims <- 50
 num_units <- 32
-epochs <- 20
+epochs <- 10
 
 # algorithm
 ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
@@ -95,6 +111,9 @@ ttgseaRes$token_gsea[["TGF beta"]][,1:5]
 <br>
 
 
+
+### Monte Carlo p-value
+
 Deep learning models predict only enrichment scores. The p-values of the scores are not provided by the model. So, the Monte Carlo p-value method is used within the algorithm. Computing the p-value for a statistical test can be easily accomplished via Monte Carlo. The ordinary Monte Carlo is a simulation technique for approximating the expectation of a function for a general random variable, when the exact expectation cannot be found analytically. The Monte Carlo p-value method simply simulates a lot of datasets under the null, computes a statistic for each generated dataset, and then computes the percentile rank of observed value among these sets of simulated values. The number of tokens used for each simulation is the same to the length of the sequence of the corresponding term. If a new text does not have any tokens, its p-value is not available.
 
 ```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
@@ -114,6 +133,9 @@ predict_model(ttgseaRes, "data science")
 <br>
 
 
+
+### visualization
+
 You are allowed to create a visualization of your model architecture.
 
 ```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
@@ -132,7 +154,11 @@ plot_model(ttgseaRes$model)
 
 Take another exmaple. A set of names of ranked genes can be seen as sequential data. In the result of GSEA, names of leading edge genes for each gene set are given. The leading edge subset contains genes which contribute most to the enrichment score. Thus the scores of one or more genes of the leading edge subset can be predicted.
 
-```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
+```{r, fig.align='center', message=FALSE, warning=FALSE, eval=FALSE}
+# leading edge
+LE <- unlist(lapply(fgseaRes$leadingEdge, function(x) gsub(",", "", toString(x))))
+fgseaRes <- cbind(fgseaRes, LE)
+
 # model parameters
 num_tokens <- 1000
 length_seq <- 30
@@ -140,10 +166,6 @@ batch_size <- 32
 embedding_dims <- 50
 num_units <- 32
 epochs <- 10
-
-# leading edge
-LE <- unlist(lapply(fgseaRes$leadingEdge, function(x) gsub(",", "", toString(x))))
-fgseaRes <- cbind(fgseaRes, LE)
 
 # algorithm
 ttgseaRes <- fit_model(fgseaRes, "LE", "NES",
@@ -167,6 +189,87 @@ set.seed(1)
 new_text <- c("107995 56150", "16952")
 predict_model(ttgseaRes, new_text)
 ```
+
+
+
+
+
+
+
+
+<br><br>
+
+
+# Tutorial
+
+The "airway" dataset has four cell lines with two conditions, control and treatment with dexamethasone. By using the package "DESeq2", differntially expressed genes  between controls and treated samples are identified from the gene expression data. Then the log2FC is used as a score for GSEA. For GSEA, GOBP for human is obtained from the package "org.Hs.eg.db", by using the package "BiocSet". GSEA is performed by the package "fgsea". Since "fgsea" can accept a list, the type of gene set is converted to a list. Finally, the result of GSEA is fitted to a deep learning model, and then enrichment scores of new terms can be predicted.
+
+
+```{r, fig.align='center', message=FALSE, warning=FALSE, eval=FALSE}
+## data preparation
+library(airway)
+data(airway)
+
+## differentially expressed genes
+library(DESeq2)
+des <- DESeqDataSet(airway, design = ~ dex)
+des <- DESeq(des)
+res <- results(des)
+head(res)
+# log2FC used for GSEA
+statistic <- res$"log2FoldChange"
+names(statistic) <- rownames(res)
+statistic <- na.omit(statistic)
+head(statistic)
+
+## gene set
+library(org.Hs.eg.db)
+library(BiocSet)
+go <- go_sets(org.Hs.eg.db, "ENSEMBL", ontology = "BP")
+go <- as(go, "list")
+# convert GO id to term name
+library(GO.db)
+names(go) <- Term(GOTERM)[names(go)]
+
+## GSEA
+library(fgsea)
+set.seed(1)
+fgseaRes <- fgsea(go, statistic)
+head(fgseaRes)
+
+## tokenizing text of GSEA
+# model parameters
+num_tokens <- 5000
+length_seq <- 30
+batch_size <- 64
+embedding_dims <- 128
+num_units <- 32
+epochs <- 20
+# algorithm
+ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
+                       model = bi_lstm(num_tokens, embedding_dims,
+                                       length_seq, num_units),
+                       num_tokens = num_tokens,
+                       length_seq = length_seq,
+                       epochs = epochs,
+                       batch_size = batch_size,
+                       callbacks = keras::callback_early_stopping(
+                         monitor = "loss",
+                         patience = 5,
+                         restore_best_weights = TRUE))
+# prediction
+ttgseaRes$token_pred
+set.seed(1)
+predict_model(ttgseaRes, c("translation response",
+                           "cytokine activity",
+                           "rhodopsin mediate",
+                           "granzyme",
+                           "histone deacetylation",
+                           "helper T cell",
+                           "Wnt"))
+```
+
+
 
 
 
