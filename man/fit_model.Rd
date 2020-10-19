@@ -5,7 +5,7 @@
 Deep learning model fitting
 }
 \description{
-From the result of GSEA, we can predict enrichment scores for unique tokens or words from text in names of gene sets by using deep learning.
+From the result of GSEA, we can predict enrichment scores for unique tokens or words from text in names of gene sets by using deep learning. The function "text_token" is used for tokenizing text and the function the function "token_vector" is used for encoding. Then the encoded sequence is fed to the embedding layer of the model.
 }
 \usage{
 fit_model(gseaRes, text, score, model, ngram_min = 1, ngram_max = 2,
@@ -57,7 +57,7 @@ trained model
 information for tokens
 }
   \item{token_pred}{
-prediction for every token
+prediction for every token, each row has a token and its predicted score
 }
   \item{token_gsea}{
 list of the GSEA result only for the corresponding token
@@ -94,7 +94,7 @@ length_seq <- 30
 batch_size <- 32
 embedding_dims <- 50
 num_units <- 32
-epochs <- 5
+epochs <- 1
 
 ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
                        model = bi_gru(num_tokens,

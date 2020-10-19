@@ -5,7 +5,7 @@
 visualization of the model architecture
 }
 \description{
-You are allowed to create a visualization of your model architecture.
+You are allowed to create a visualization of your model architecture. This architecture displays the information about the name, input shape, and output shape of layers in a flowchart. 
 }
 \usage{
 plot_model(x)
@@ -52,10 +52,6 @@ combined <- layer_concatenate(c(predictions1, predictions2)) \%>\%
 
 model <- keras_model(inputs = c(inputs1, inputs2),
                      outputs = combined)
-model \%>\%
-  compile(optimizer = "rmsprop",
-          loss = "categorical_crossentropy",
-          metrics = c("accuracy"))
 plot_model(model)
 }
 

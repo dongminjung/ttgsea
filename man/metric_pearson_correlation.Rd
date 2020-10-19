@@ -44,7 +44,8 @@ stacked_gru <- function(num_tokens, embedding_dims, length_seq,
   model \%>\%
     keras::compile(loss = "mean_squared_error",
                    optimizer = "adam",
-                   metrics = metric_pearson_correlation)
+                   metrics = custom_metric("pearson_correlation",
+                                           metric_pearson_correlation))
 }
 }
 

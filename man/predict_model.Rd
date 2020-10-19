@@ -5,7 +5,7 @@
 Model prediction
 }
 \description{
-From the result of the function "ttgsea", we can predict enrichment scores.
+From the result of the function "ttgsea", we can predict enrichment scores. For each new term, lemmatized text, predicted enrichment score, Monte Carlo p-value and adjusted p-value are provided. The function "token_vector" is used for encoding as we did for training. Of course, mapping from tokens to integers should be the same.
 }
 \usage{
 predict_model(object, new_text, num_simulations = 1000,
@@ -56,7 +56,7 @@ length_seq <- 30
 batch_size <- 32
 embedding_dims <- 50
 num_units <- 32
-epochs <- 5
+epochs <- 1
 
 ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
                        model = bi_gru(num_tokens,

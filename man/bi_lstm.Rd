@@ -5,7 +5,7 @@
 Bidirectional LSTM
 }
 \description{
-A predefined function that is used as a model in "ttgsea". This is a simple model, but you can define your own model.
+A predefined function that is used as a model in "ttgsea". This is a simple model, but you can define your own model. The loss function is "mean_squared_error" and the optimizer is "adam". Pearson correlation is used as a metric.
 }
 \usage{
 bi_lstm(num_tokens, embedding_dims, length_seq, num_units)
@@ -71,7 +71,8 @@ stacked_lstm <- function(num_tokens, embedding_dims, length_seq,
   model \%>\%
     keras::compile(loss = "mean_squared_error",
                    optimizer = "adam",
-                   metrics = metric_pearson_correlation)
+                   metrics = custom_metric("pearson_correlation",
+                                           metric_pearson_correlation))
 }
 }
 
