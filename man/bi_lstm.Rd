@@ -2,7 +2,7 @@
 \alias{bi_lstm}
 
 \title{
-Bidirectional LSTM
+Bidirectional LSTM with embedding layer
 }
 \description{
 A predefined function that is used as a model in "ttgsea". This is a simple model, but you can define your own model. The loss function is "mean_squared_error" and the optimizer is "adam". Pearson correlation is used as a metric.

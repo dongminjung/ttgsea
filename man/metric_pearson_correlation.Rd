@@ -5,7 +5,7 @@
 Pearson correlation coefficient
 }
 \description{
-Pearson correlation coefficient can be seen as one of the model performance metrics.
+Pearson correlation coefficient can be seen as one of the model performance metrics. This is a measure of how close the predicted value is to the true value. If it is close to 1, the model is considered a good fit. If it is close to 0, the model is not good. A value of 0 corresponds to a random prediction.
 }
 
 
