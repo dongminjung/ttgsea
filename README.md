@@ -10,6 +10,8 @@ Functional enrichment analysis methods such as gene set enrichment analysis (GSE
 
 ## Installation
 
+Python is required, although this is a R package. Furthermore, tensorflow and kears should be installed in Python and they should be connected to R, before installing this package (https://tensorflow.rstudio.com, https://keras.rstudio.com).
+
 ``` 
 devtools::install_github("dongminjung/ttgsea")
 ```
@@ -21,7 +23,6 @@ devtools::install_github("dongminjung/ttgsea")
 ## Tutorial
 
 The "airway" dataset has four cell lines with two conditions, control and treatment with dexamethasone. By using the package "DESeq2", differntially expressed genes  between controls and treated samples are identified from the gene expression data. Then the log2FC is used as a score for GSEA. For GSEA, GOBP for human is obtained from the package "org.Hs.eg.db", by using the package "BiocSet". GSEA is performed by the package "fgsea". Since "fgsea" can accept a list, the type of gene set is converted to a list. Finally, the result of GSEA is fitted to a deep learning model, and then enrichment scores of new terms can be predicted.
-
 
 ```
 library(ttgsea)
@@ -42,10 +43,14 @@ names(statistic) <- rownames(res)
 statistic <- na.omit(statistic)
 head(statistic)
 ```
+
+The log2FC is calculated for every gene with Ensemble Gene ID.
 ```
 ENSG00000000003 ENSG00000000419 ENSG00000000457 ENSG00000000460 ENSG00000000938 ENSG00000000971 
      0.38125398     -0.20681260     -0.03792043      0.08816818      1.37822703     -0.42640213
 ```
+
+Using the GOBP gene set, GSEA is performed.
 ```
 ## gene set
 library(org.Hs.eg.db)
@@ -62,6 +67,8 @@ set.seed(1)
 fgseaRes <- fgsea(go, statistic)
 head(fgseaRes[,-"leadingEdge"])
 ```
+
+The result of GSEA contains names of pathways and enrichment scores.
 ```
                                               pathway       pval      padj    log2err
 1:                 'de novo' AMP biosynthetic process 0.59126984 1.0000000 0.07011322
@@ -78,6 +85,8 @@ head(fgseaRes[,-"leadingEdge"])
 5:  0.4328288  0.8303816    5
 6: -0.4293014 -0.7200576    3
 ```
+
+The main function of the package "ttgsea" is "fit_model" and it is used to build a deep learning model for predicting new terms. This function gives a trained model.
 ```
 ## tokenizing text of GSEA
 # model parameters
@@ -100,6 +109,8 @@ ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
                          patience = 5,
                          restore_best_weights = TRUE))
 ```
+
+We can monitor the training process. Pearson correlation coefficient is used as a performance metric. Pearson correlation is a measure of how close the predicted value is to the true value. If it is close to 1, the model is considered a good fit. If it is close to 0, the model is not good. A value of 0 corresponds to a random prediction.
 ```
 Epoch 1/20
 183/183 [==============================] - 58s 315ms/step - loss: 0.9679 - pearson_correlation: 0.2008
@@ -145,11 +156,13 @@ Epoch 20/20
 
 ![history plot](docs/history_plot.png)
 
+The enrichment score of every token is predicted.
 ```
 # prediction
 ttgseaRes$token_pred
 ```
 
+The helper T cell seems to have a small negative values.
 ```
              token_term      pred
    1:           SA node  2.914987
@@ -165,6 +178,7 @@ ttgseaRes$token_pred
 5000:       helper cell -2.143030
 ```
 
+The trained model is used for predicting new terms.
 ```
 set.seed(1)
 predict_model(ttgseaRes, c("translation response",
@@ -176,6 +190,7 @@ predict_model(ttgseaRes, c("translation response",
                            "Wnt"))
 ```
 
+In the table, "test_value" is the predicted enrichment score. We can get the enrichment score for word or phrase.
 ```
                new_text test_value MC_p_value adj_p_value
 1  translation response  1.5176259      0.026  0.06066667
@@ -187,6 +202,7 @@ predict_model(ttgseaRes, c("translation response",
 7                   Wnt -1.0362499      0.090  0.10500000
 ```
 
+The function "plot_model" draws the plot for model architecture.
 ```
 plot_model(ttgseaRes$model)
 ```
