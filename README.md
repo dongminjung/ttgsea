@@ -162,7 +162,7 @@ The enrichment score of every token is predicted.
 ttgseaRes$token_pred
 ```
 
-The helper T cell seems to have a small negative values.
+The helper T cell seems to have a small negative value.
 ```
              token_term      pred
    1:           SA node  2.914987
