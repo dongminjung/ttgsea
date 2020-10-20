@@ -206,7 +206,7 @@ predict_model(ttgseaRes, new_text)
 <br><br>
 
 
-# Tutorial
+# Case Study
 
 The "airway" dataset has four cell lines with two conditions, control and treatment with dexamethasone. By using the package "DESeq2", differntially expressed genes  between controls and treated samples are identified from the gene expression data. Then the log2FC is used as a score for GSEA. For GSEA, GOBP for human is obtained from the package "org.Hs.eg.db", by using the package "BiocSet". GSEA is performed by the package "fgsea". Since "fgsea" can accept a list, the type of gene set is converted to a list. Finally, the result of GSEA is fitted to a deep learning model, and then enrichment scores of new terms can be predicted.
 
