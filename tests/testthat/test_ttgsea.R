@@ -13,7 +13,8 @@ num_units <- 32
 epochs <- 1
 
 
-if (reticulate::py_available() & keras::is_keras_available()) {
+library(reticulate)
+if (keras::is_keras_available() & reticulate::py_available()) {
   ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
                          model = bi_lstm(num_tokens, embedding_dims,
                                          length_seq, num_units),
