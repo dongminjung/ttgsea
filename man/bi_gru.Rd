@@ -13,7 +13,7 @@ bi_gru(num_tokens, embedding_dims, length_seq, num_units)
 
 \arguments{
   \item{num_tokens}{
-total number of tokens
+maximum number of tokens
 }
   \item{embedding_dims}{
 a non-negative integer for dimension of the dense embedding
@@ -44,34 +44,36 @@ keras::bidirectional, keras::layer_dense, keras::compile
 
 
 \examples{
-num_tokens <- 1000
-length_seq <- 30
-embedding_dims <- 50
-num_units <- 32
-model <- bi_gru(num_tokens, embedding_dims, length_seq, num_units)
-
-# stacked gru
-num_units_1 <- 32
-num_units_2 <- 16
-stacked_gru <- function(num_tokens, embedding_dims, length_seq,
-                        num_units_1, num_units_2)
-{
-  model <- keras::keras_model_sequential() \%>\%
-    keras::layer_embedding(input_dim = num_tokens,
-                           output_dim = embedding_dims,
-                           input_length = length_seq) \%>\%
-    keras::layer_gru(units = num_units_1,
-                     activation = "relu",
-                     return_sequences = TRUE) \%>\%
-    keras::layer_gru(units = num_units_2,
-                     activation = "relu") \%>\%
-    keras::layer_dense(1)
-    
-  model \%>\%
-    keras::compile(loss = "mean_squared_error",
-                   optimizer = "adam",
-                   metrics = custom_metric("pearson_correlation",
-                                           metric_pearson_correlation))
+library(reticulate)
+if (keras::is_keras_available() & reticulate::py_available()) {
+  num_tokens <- 1000
+  length_seq <- 30
+  embedding_dims <- 50
+  num_units <- 32
+  model <- bi_gru(num_tokens, embedding_dims, length_seq, num_units)
+  
+  # stacked gru
+  num_units_1 <- 32
+  num_units_2 <- 16
+  stacked_gru <- function(num_tokens, embedding_dims, length_seq,
+                          num_units_1, num_units_2)
+  {
+    model <- keras::keras_model_sequential() \%>\%
+      keras::layer_embedding(input_dim = num_tokens,
+                             output_dim = embedding_dims,
+                             input_length = length_seq) \%>\%
+      keras::layer_gru(units = num_units_1,
+                       activation = "relu",
+                       return_sequences = TRUE) \%>\%
+      keras::layer_gru(units = num_units_2,
+                       activation = "relu") \%>\%
+      keras::layer_dense(1)
+      
+    model \%>\%
+      keras::compile(loss = "mean_squared_error",
+                     optimizer = "adam",
+                     metrics = custom_metric("pearson_correlation",
+                                             metric_pearson_correlation))
+  }
 }
 }
-

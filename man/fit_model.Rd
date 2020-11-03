@@ -32,7 +32,7 @@ minimum size of an n-gram (default: 1)
 maximum size of an n-gram (default: 2)
 }
   \item{num_tokens}{
-total number of tokens, it must be equal to the input dimension of "layer_embedding" in the "model"
+maximum number of tokens, it must be equal to the input dimension of "layer_embedding" in the "model"
 }
   \item{length_seq}{
 length of input sequences, it must be equal to the input length of "layer_embedding" in the "model"
@@ -81,29 +81,31 @@ keras::fit_generator, keras::layer_embedding, keras::pad_sequences, textstem::le
 }
 
 \examples{
-library(fgsea)
-data(examplePathways)
-data(exampleRanks)
-names(examplePathways) <- gsub("_", " ",
-                          substr(names(examplePathways), 9, 1000))
-set.seed(1)
-fgseaRes <- fgsea(examplePathways, exampleRanks)
-
-num_tokens <- 1000
-length_seq <- 30
-batch_size <- 32
-embedding_dims <- 50
-num_units <- 32
-epochs <- 1
-
-ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
-                       model = bi_gru(num_tokens,
-                                      embedding_dims,
-                                      length_seq,
-                                      num_units),
-                       num_tokens = num_tokens,
-                       length_seq = length_seq,
-                       epochs = epochs,
-                       batch_size = batch_size)
+library(reticulate)
+if (keras::is_keras_available() & reticulate::py_available()) {
+  library(fgsea)
+  data(examplePathways)
+  data(exampleRanks)
+  names(examplePathways) <- gsub("_", " ",
+                            substr(names(examplePathways), 9, 1000))
+  set.seed(1)
+  fgseaRes <- fgsea(examplePathways, exampleRanks)
+  
+  num_tokens <- 1000
+  length_seq <- 30
+  batch_size <- 32
+  embedding_dims <- 50
+  num_units <- 32
+  epochs <- 1
+  
+  ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
+                         model = bi_gru(num_tokens,
+                                        embedding_dims,
+                                        length_seq,
+                                        num_units),
+                         num_tokens = num_tokens,
+                         length_seq = length_seq,
+                         epochs = epochs,
+                         batch_size = batch_size)
 }
-
+}

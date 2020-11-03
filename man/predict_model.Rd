@@ -43,32 +43,34 @@ stats::p.adjust
 }
 
 \examples{
-library(fgsea)
-data(examplePathways)
-data(exampleRanks)
-names(examplePathways) <- gsub("_", " ",
-                          substr(names(examplePathways), 9, 1000))
-set.seed(1)
-fgseaRes <- fgsea(examplePathways, exampleRanks)
-
-num_tokens <- 1000
-length_seq <- 30
-batch_size <- 32
-embedding_dims <- 50
-num_units <- 32
-epochs <- 1
-
-ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
-                       model = bi_gru(num_tokens,
-                                      embedding_dims,
-                                      length_seq,
-                                      num_units),
-                       num_tokens = num_tokens,
-                       length_seq = length_seq,
-                       epochs = epochs,
-                       batch_size = batch_size)
-
-set.seed(1)
-predict_model(ttgseaRes, "Cell Cycle")
+library(reticulate)
+if (keras::is_keras_available() & reticulate::py_available()) {
+  library(fgsea)
+  data(examplePathways)
+  data(exampleRanks)
+  names(examplePathways) <- gsub("_", " ",
+                            substr(names(examplePathways), 9, 1000))
+  set.seed(1)
+  fgseaRes <- fgsea(examplePathways, exampleRanks)
+  
+  num_tokens <- 1000
+  length_seq <- 30
+  batch_size <- 32
+  embedding_dims <- 50
+  num_units <- 32
+  epochs <- 1
+  
+  ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
+                         model = bi_gru(num_tokens,
+                                        embedding_dims,
+                                        length_seq,
+                                        num_units),
+                         num_tokens = num_tokens,
+                         length_seq = length_seq,
+                         epochs = epochs,
+                         batch_size = batch_size)
+  
+  set.seed(1)
+  predict_model(ttgseaRes, "Cell Cycle")
 }
-
+}

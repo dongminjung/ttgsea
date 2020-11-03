@@ -22,7 +22,7 @@ minimum size of an n-gram (default: 1)
 maximum size of an n-gram (default: 1)
 }
   \item{num_tokens}{
-total number of tokens
+maximum number of tokens
 }
 }
 
