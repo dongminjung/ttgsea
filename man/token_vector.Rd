@@ -40,16 +40,19 @@ tm::removeWords, stopwords::stopwords, textstem::lemmatize_strings, tokenizers::
 }
 
 \examples{
-library(fgsea)
-data(examplePathways)
-data(exampleRanks)
-names(examplePathways) <- gsub("_", " ",
-                          substr(names(examplePathways), 9, 1000))
-set.seed(1)
-fgseaRes <- fgsea(examplePathways, exampleRanks)
-tokens <- text_token(data.frame(fgseaRes)[,"pathway"],
-          num_tokens = 1000)
-sequences <- token_vector("Cell Cycle", tokens, 10)
+library(reticulate)
+if (keras::is_keras_available() & reticulate::py_available()) {
+  library(fgsea)
+  data(examplePathways)
+  data(exampleRanks)
+  names(examplePathways) <- gsub("_", " ",
+                            substr(names(examplePathways), 9, 1000))
+  set.seed(1)
+  fgseaRes <- fgsea(examplePathways, exampleRanks)
+  tokens <- text_token(data.frame(fgseaRes)[,"pathway"],
+            num_tokens = 1000)
+  sequences <- token_vector("Cell Cycle", tokens, 10)
+}
 }
 
 
