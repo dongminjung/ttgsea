@@ -87,8 +87,6 @@ data.table::data.table(fgseaRes[order(fgseaRes$NES, decreasing = TRUE),])
 Since deep learning architectures are incapable of processing characters or words in their raw form, the text needs to be converted to numbers as inputs. Word embeddings are the texts converted into numbers. For tokenization, unigram and bigram sequences are used as default. An integer is assigned to each token, and then each term is converted to a sequence of integers. The sequences that are longer than the given maximum length are truncated, whereas shorter sequences are padded with zeros. Keras is a higher-level library built on top of TensorFlow. It is available in R through the keras package. The input to the Keras embedding are integers. These integers are of the tokens. This representation is passed to the embedding layer. The embedding layer acts as the first hidden layer of the neural network.
 
 ```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
-setTimeLimit(elapsed = 100)
-
 # model parameters
 num_tokens <- 1000
 length_seq <- 30
