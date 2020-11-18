@@ -2,7 +2,7 @@ Package: ttgsea
 Type: Package
 Title: Tokenizing Text of Gene Set Enrichment Analysis
 Description: Functional enrichment analysis methods such as gene set enrichment analysis (GSEA) have been widely used for analyzing gene expression data. GSEA is a powerful method to infer results of gene expression data at a level of gene sets by calculating enrichment scores for predefined sets of genes. GSEA depends on the availability and accuracy of gene sets. There are overlaps between terms of gene sets or categories because multiple terms may exist for a single biological process, and it can thus lead to redundancy within enriched terms. In other words, the sets of related terms are overlapping. Using deep learning, this pakage is aimed to predict enrichment scores for unique tokens or words from text in names of gene sets to resolve this overlapping set issue. Furthermore, we can coin a new term by combining tokens and find its enrichment score by predicting such a combined tokens.
-Version: 0.99.14
+Version: 0.99.15
 Date: 2020-11-18
 Authors@R: c(person(given="Dongmin", family="Jung", email="dmdmjung@gmail.com", role=c("cre", "aut"), comment = c(ORCID = "0000-0001-7499-8422")))
 LazyData: TRUE
