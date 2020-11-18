@@ -9,7 +9,8 @@ From the result of GSEA, we can predict enrichment scores for unique tokens or w
 }
 \usage{
 fit_model(gseaRes, text, score, model, ngram_min = 1, ngram_max = 2,
-          num_tokens, length_seq, epochs, batch_size, ...)
+          num_tokens, length_seq, epochs, batch_size,
+          use_generator = TRUE, ...)
 }
 
 \arguments{
@@ -43,8 +44,11 @@ number of epochs
   \item{batch_size}{
 batch size
 }
+  \item{use_generator}{
+if "use_generator" is TRUE, the function "sampling_generator" is used for "fit_generator". Otherwise, the "fit" is used without a generator.
+}
   \item{...}{
-additional parameters for the "fit_generator"
+additional parameters for the "fit" or "fit_generator"
 }
 }
 
@@ -63,7 +67,7 @@ prediction for every token, each row has a token and its predicted score
 list of the GSEA result only for the corresponding token
 }
   \item{num_tokens}{
-total number of tokens
+maximum number of tokens
 }
   \item{length_seq}{
 length of input sequences
@@ -106,6 +110,7 @@ if (keras::is_keras_available() & reticulate::py_available()) {
                          num_tokens = num_tokens,
                          length_seq = length_seq,
                          epochs = epochs,
-                         batch_size = batch_size)
+                         batch_size = batch_size,
+                         use_generator = FALSE)
 }
 }

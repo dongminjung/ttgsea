@@ -68,7 +68,8 @@ if (keras::is_keras_available() & reticulate::py_available()) {
                          num_tokens = num_tokens,
                          length_seq = length_seq,
                          epochs = epochs,
-                         batch_size = batch_size)
+                         batch_size = batch_size,
+                         use_generator = FALSE)
   
   set.seed(1)
   predict_model(ttgseaRes, "Cell Cycle")
