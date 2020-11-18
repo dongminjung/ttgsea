@@ -1,7 +1,7 @@
 ---
 title: "Tokenizing Text of Gene Set Enrichment Analysis"
 author: "Dongmin Jung"
-date: November 4, 2020
+date: November 18, 2020
 output:
   rmarkdown::html_document:
     highlight: pygments
@@ -103,6 +103,7 @@ ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
                        length_seq = length_seq,
                        epochs = epochs,
                        batch_size = batch_size,
+                       use_generator = FALSE,
                        callbacks = keras::callback_early_stopping(
                           monitor = "loss",
                           patience = 10,
