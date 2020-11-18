@@ -21,7 +21,8 @@ if (keras::is_keras_available() & reticulate::py_available()) {
                          num_tokens = num_tokens,
                          length_seq = length_seq,
                          epochs = epochs,
-                         batch_size = batch_size)
+                         batch_size = batch_size,
+                         use_generator = FALSE)
 }
 
 
@@ -78,7 +79,8 @@ test_that("fit_model: swap values of text and score", {
                          num_tokens = num_tokens,
                          length_seq = length_seq,
                          epochs = epochs,
-                         batch_size = batch_size))
+                         batch_size = batch_size,
+                         use_generator = FALSE))
 })
 
 
@@ -89,7 +91,8 @@ test_that("fit_model: miss model", {
                          num_tokens = num_tokens,
                          length_seq = length_seq,
                          epochs = epochs,
-                         batch_size = batch_size))
+                         batch_size = batch_size,
+                         use_generator = FALSE))
 })
 
 
@@ -101,7 +104,8 @@ test_that("fit_model: miss epochs", {
                                          length_seq, num_units),
                          num_tokens = num_tokens,
                          length_seq = length_seq,
-                         batch_size = batch_size))
+                         batch_size = batch_size,
+                         use_generator = FALSE))
 })
 
 
@@ -113,7 +117,8 @@ test_that("fit_model: miss batch_size", {
                                          length_seq, num_units),
                          num_tokens = num_tokens,
                          length_seq = length_seq,
-                         epochs = epochs))
+                         epochs = epochs,
+                         use_generator = FALSE))
 })
 
 
