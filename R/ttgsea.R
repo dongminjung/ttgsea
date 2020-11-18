@@ -89,7 +89,8 @@ sampling_generator <- function(X_data, Y_data, batch_size) {
 
 
 fit_model <- function(gseaRes, text, score, model, ngram_min = 1, ngram_max = 2,
-                      num_tokens, length_seq, epochs, batch_size, ...) {
+                      num_tokens, length_seq, epochs, batch_size,
+                      use_generator = TRUE, ...) {
     gseaRes <- data.frame(gseaRes)
     
     message("pre-processing...")
@@ -99,11 +100,15 @@ fit_model <- function(gseaRes, text, score, model, ngram_min = 1, ngram_max = 2,
     y_train <- gseaRes[,score]
     
     message("model fitting...")
-    model %>%
-      keras::fit_generator(sampling_generator(as.matrix(x_train),
-                                              as.matrix(y_train),
-                                              batch_size = batch_size),
-                           steps_per_epoch = nrow(x_train)/batch_size, epochs, ...)
+    if(use_generator) {
+      model %>% keras::fit_generator(sampling_generator(as.matrix(x_train), 
+                                                        as.matrix(y_train),
+                                                        batch_size = batch_size),
+                                     steps_per_epoch = nrow(x_train)/batch_size, 
+                                     epochs, ...)
+    } else {
+      model %>% keras::fit(x_train, y_train, batch_size, epochs, ...)
+    }
     
     # prediction for every token
     token_term <- textstem::lemmatize_strings(tokens$token$term)
