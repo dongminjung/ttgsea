@@ -147,7 +147,7 @@ if (exists("ttgseaRes")) {
 
 You are allowed to create a visualization of your model architecture.
 
-```{r, fig.align='center', message=FALSE, warning=FALSE, eval=FALSE}
+```{r, fig.align='center', message=FALSE, warning=FALSE, eval=TRUE}
 if (exists("ttgseaRes")) {
   summary(ttgseaRes$model)
   plot_model(ttgseaRes$model)
