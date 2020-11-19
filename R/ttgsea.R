@@ -200,12 +200,10 @@ plot_model <- function(x) {
         }))
     layer_output_shape <- gsub("NULL", "None", layer_output_shape)
     
-    message(layer_name)
-    message(layer_name_sub)
-    message(layer_type)
-    message(layer_type_sub)
-    message(layer_input_shape)
-    message(layer_output_shape)
+    message(x$layers[[1]]$input_shape)
+    message(x$layers[[2]]$input_shape)
+    message(x$layers[[3]]$input_shape)
+    message(x$layers[[4]]$input_shape)
     
     node_info <- data.frame(layer_name, layer_name_sub, layer_type,
                             layer_type_sub, layer_input_shape, layer_output_shape)
