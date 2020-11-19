@@ -199,6 +199,14 @@ plot_model <- function(x) {
                paste("(", toString(paste(x$output_shape)), ")", sep = ""))
         }))
     layer_output_shape <- gsub("NULL", "None", layer_output_shape)
+    
+    message(layer_name)
+    message(layer_name_sub)
+    message(layer_type)
+    message(layer_type_sub)
+    message(layer_input_shape)
+    message(layer_output_shape)
+    
     node_info <- data.frame(layer_name, layer_name_sub, layer_type,
                             layer_type_sub, layer_input_shape, layer_output_shape)
     
