@@ -173,8 +173,14 @@ predict_model <- function(object, new_text, num_simulations = 1000,
 plot_model <- function(x) {
     # layer information
     model_layers <- x$get_config()$layers
+    if(length(x$layers) == (length(model_layers)-1)) {
+      model_layers <- list()
+      for(i in 1:length(x$layers)) {
+        model_layers[[i]] <- x$get_config()$layers[[i+1]]
+      }
+    }
     
-    # node information
+      # node information
     layer_name <- model_layers %>% 
       purrr::map_chr(~(purrr::`%||%`(purrr::pluck(., "config", "name"), "")))
     layer_name_sub <- model_layers %>% 
@@ -199,15 +205,6 @@ plot_model <- function(x) {
                paste("(", toString(paste(x$output_shape)), ")", sep = ""))
         }))
     layer_output_shape <- gsub("NULL", "None", layer_output_shape)
-    
-    message(model_layers[[1]]$config$name)
-    message(length(model_layers[[1]]$config$name))
-    message(model_layers[[2]]$config$name)
-    message(length(model_layers[[2]]$config$name))
-    message(model_layers[[3]]$config$name)
-    message(length(model_layers[[3]]$config$name))
-    message(x$layers[[4]]$input_shape)
-    
     node_info <- data.frame(layer_name, layer_name_sub, layer_type,
                             layer_type_sub, layer_input_shape, layer_output_shape)
     
