@@ -11,6 +11,7 @@ Functional enrichment analysis methods such as gene set enrichment analysis (GSE
 ## Installation
 
 Python is required, although this is a R package. Furthermore, tensorflow and kears should be installed in Python and they should be connected to R, before installing this package (https://tensorflow.rstudio.com, https://keras.rstudio.com).
+
 To install the stable version from Bioconductor:
 ```
 if (!requireNamespace("BiocManager", quietly = TRUE))
