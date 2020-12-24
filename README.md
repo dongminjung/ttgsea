@@ -100,12 +100,12 @@ The main function of the package "ttgsea" is "fit_model" and it is used to build
 num_tokens <- 5000
 length_seq <- 30
 batch_size <- 64
-embedding_dims <- 128
+embedding_dim <- 128
 num_units <- 32
 epochs <- 20
 # algorithm
 ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
-                       model = bi_lstm(num_tokens, embedding_dims,
+                       model = bi_lstm(num_tokens, embedding_dim,
                                        length_seq, num_units),
                        num_tokens = num_tokens,
                        length_seq = length_seq,
