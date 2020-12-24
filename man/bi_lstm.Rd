@@ -8,14 +8,14 @@ Bidirectional LSTM with embedding layer
 A predefined function that is used as a model in "ttgsea". This is a simple model, but you can define your own model. The loss function is "mean_squared_error" and the optimizer is "adam". Pearson correlation is used as a metric.
 }
 \usage{
-bi_lstm(num_tokens, embedding_dims, length_seq, num_units)
+bi_lstm(num_tokens, embedding_dim, length_seq, num_units)
 }
 
 \arguments{
   \item{num_tokens}{
 maximum number of tokens
 }
-  \item{embedding_dims}{
+  \item{embedding_dim}{
 a non-negative integer for dimension of the dense embedding
 }
   \item{length_seq}{
@@ -48,21 +48,22 @@ library(reticulate)
 if (keras::is_keras_available() & reticulate::py_available()) {
   num_tokens <- 1000
   length_seq <- 30
-  embedding_dims <- 50
+  embedding_dim <- 50
   num_units <- 32
-  model <- bi_lstm(num_tokens, embedding_dims, length_seq, num_units)
+  model <- bi_lstm(num_tokens, embedding_dim, length_seq, num_units)
   
   
   # stacked lstm
   num_units_1 <- 32
   num_units_2 <- 16
-  stacked_lstm <- function(num_tokens, embedding_dims, length_seq,
+  stacked_lstm <- function(num_tokens, embedding_dim, length_seq,
                            num_units_1, num_units_2)
   {
     model <- keras::keras_model_sequential() \%>\%
       keras::layer_embedding(input_dim = num_tokens,
-                             output_dim = embedding_dims,
-                             input_length = length_seq) \%>\%
+                             output_dim = embedding_dim,
+                             input_length = length_seq,
+                             mask_zero = TRUE) \%>\%
       keras::layer_lstm(units = num_units_1,
                         activation = "relu",
                         return_sequences = TRUE) \%>\%
