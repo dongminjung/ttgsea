@@ -25,7 +25,7 @@ token_vector <- function(text, token, length_seq) {
                                                n_min = token$ngram_min,
                                                lowercase = FALSE,
                                                stopwords = stopwords::stopwords("en"))
-    text_seqs <- lapply(text_ngrams, function(x) na.omit(match(x, token$token$term))-1)
+    text_seqs <- lapply(text_ngrams, function(x) na.omit(match(x, token$token$term)))
     text_seqs %>% keras::pad_sequences(maxlen = length_seq)
 }
 
@@ -44,11 +44,12 @@ metric_pearson_correlation <- function(y_true, y_pred) {
 
 
 
-bi_lstm <- function(num_tokens, embedding_dims, length_seq, num_units) {
+bi_lstm <- function(num_tokens, embedding_dim, length_seq, num_units) {
     model <- keras::keras_model_sequential() %>% 
-      keras::layer_embedding(input_dim = num_tokens,
-                             output_dim = embedding_dims,
-                             input_length = length_seq) %>% 
+      keras::layer_embedding(input_dim = num_tokens + 1,
+                             output_dim = embedding_dim,
+                             input_length = length_seq,
+                             mask_zero = TRUE) %>% 
       keras::bidirectional(keras::layer_lstm(units = num_units,
                                              activation = "relu")) %>%
       keras::layer_dense(1)
@@ -61,11 +62,12 @@ bi_lstm <- function(num_tokens, embedding_dims, length_seq, num_units) {
 
 
 
-bi_gru <- function(num_tokens, embedding_dims, length_seq, num_units) {
+bi_gru <- function(num_tokens, embedding_dim, length_seq, num_units) {
     model <- keras::keras_model_sequential() %>%
-      keras::layer_embedding(input_dim = num_tokens,
-                             output_dim = embedding_dims,
-                             input_length = length_seq) %>%
+      keras::layer_embedding(input_dim = num_tokens + 1,
+                             output_dim = embedding_dim,
+                             input_length = length_seq,
+                             mask_zero = TRUE) %>%
       keras::bidirectional(keras::layer_gru(units = num_units,
                                             activation = "relu")) %>%
       keras::layer_dense(1)
