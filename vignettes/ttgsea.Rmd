@@ -1,7 +1,7 @@
 ---
 title: "Tokenizing Text of Gene Set Enrichment Analysis"
 author: "Dongmin Jung"
-date: November 18, 2020
+date: December 24, 2020
 output:
   rmarkdown::html_document:
     highlight: pygments
@@ -91,13 +91,13 @@ Since deep learning architectures are incapable of processing characters or word
 num_tokens <- 1000
 length_seq <- 30
 batch_size <- 32
-embedding_dims <- 50
+embedding_dim <- 50
 num_units <- 32
 epochs <- 10
 
 # algorithm
 ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
-                       model = bi_lstm(num_tokens, embedding_dims,
+                       model = bi_lstm(num_tokens, embedding_dim,
                                        length_seq, num_units),
                        num_tokens = num_tokens,
                        length_seq = length_seq,
@@ -133,8 +133,8 @@ if (exists("ttgseaRes")) {
                 "Cycle Cell",
                 "Replication DNA",
                 "TGF-beta receptor")
-  predict_model(ttgseaRes, new_text)
-  predict_model(ttgseaRes, "data science")
+  print(predict_model(ttgseaRes, new_text))
+  print(predict_model(ttgseaRes, "data science"))
 }
 ```
 
@@ -174,13 +174,13 @@ fgseaRes <- cbind(fgseaRes, LE)
 num_tokens <- 1000
 length_seq <- 30
 batch_size <- 32
-embedding_dims <- 50
+embedding_dim <- 50
 num_units <- 32
 epochs <- 10
 
 # algorithm
 ttgseaRes <- fit_model(fgseaRes, "LE", "NES",
-                       model = bi_lstm(num_tokens, embedding_dims,
+                       model = bi_lstm(num_tokens, embedding_dim,
                                        length_seq, num_units),
                        num_tokens = num_tokens,
                        length_seq = length_seq,
@@ -253,12 +253,12 @@ head(fgseaRes)
 num_tokens <- 5000
 length_seq <- 30
 batch_size <- 64
-embedding_dims <- 128
+embedding_dim <- 128
 num_units <- 32
 epochs <- 20
 # algorithm
 ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
-                       model = bi_lstm(num_tokens, embedding_dims,
+                       model = bi_lstm(num_tokens, embedding_dim,
                                        length_seq, num_units),
                        num_tokens = num_tokens,
                        length_seq = length_seq,
