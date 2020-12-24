@@ -8,7 +8,7 @@ fgseaRes <- fgseaSimple(examplePathways, exampleRanks, nperm = 1000)
 num_tokens <- 100
 length_seq <- 30
 batch_size <- 32
-embedding_dims <- 50
+embedding_dim <- 50
 num_units <- 32
 epochs <- 1
 
@@ -16,7 +16,7 @@ epochs <- 1
 library(reticulate)
 if (keras::is_keras_available() & reticulate::py_available()) {
   ttgseaRes <- fit_model(fgseaRes, "pathway", "NES",
-                         model = bi_lstm(num_tokens, embedding_dims,
+                         model = bi_lstm(num_tokens, embedding_dim,
                                          length_seq, num_units),
                          num_tokens = num_tokens,
                          length_seq = length_seq,
@@ -74,7 +74,7 @@ test_that("fit_model: swap values of text and score", {
   check_python_available()
   check_keras_available()
   expect_error(fit_model(fgseaRes, "NES", "pathway",
-                         model = bi_lstm(num_tokens, embedding_dims,
+                         model = bi_lstm(num_tokens, embedding_dim,
                                          length_seq, num_units),
                          num_tokens = num_tokens,
                          length_seq = length_seq,
@@ -100,7 +100,7 @@ test_that("fit_model: miss epochs", {
   check_python_available()
   check_keras_available()
   expect_error(fit_model(fgseaRes, "pathway", "NES",
-                         model = bi_lstm(num_tokens, embedding_dims,
+                         model = bi_lstm(num_tokens, embedding_dim,
                                          length_seq, num_units),
                          num_tokens = num_tokens,
                          length_seq = length_seq,
@@ -113,7 +113,7 @@ test_that("fit_model: miss batch_size", {
   check_python_available()
   check_keras_available()
   expect_error(fit_model(fgseaRes, "pathway", "NES",
-                         model = bi_lstm(num_tokens, embedding_dims,
+                         model = bi_lstm(num_tokens, embedding_dim,
                                          length_seq, num_units),
                          num_tokens = num_tokens,
                          length_seq = length_seq,
