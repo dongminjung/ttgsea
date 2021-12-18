@@ -24,7 +24,7 @@ keras::k_mean, keras::sum, keras::k_square, keras::k_sqrt
 library(reticulate)
 if (keras::is_keras_available() & reticulate::py_available()) {
   num_tokens <- 1000
-  length_token <- 30
+  length_seq <- 30
   embedding_dims <- 50
   num_units_1 <- 32
   num_units_2 <- 16
